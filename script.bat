@@ -53,6 +53,23 @@ start /wait ChromeInstaller.exe /silent /install
 echo Google Chrome 설치 완료.
 echo.
 
+:: 2-2-1. GitHub 홈페이지 열기
+echo GitHub 홈페이지를 Chrome으로 엽니다...
+set "CHROME_PATH="
+if exist "C:\Program Files\Google\Chrome\Application\chrome.exe" (
+    set "CHROME_PATH=C:\Program Files\Google\Chrome\Application\chrome.exe"
+) else if exist "%LOCALAPPDATA%\Google\Chrome\Application\chrome.exe" (
+    set "CHROME_PATH=%LOCALAPPDATA%\Google\Chrome\Application\chrome.exe"
+)
+
+if defined CHROME_PATH (
+    start "" "%CHROME_PATH%" "https://github.com"
+    echo GitHub 홈페이지를 열었습니다.
+) else (
+    echo [경고] Chrome 실행 파일을 찾을 수 없어 GitHub을 자동으로 열지 못했습니다.
+)
+echo.
+
 :: 2-3. Google Chrome 시작 페이지 설정
 echo [4/5] Google Chrome의 시작 페이지를 https://github.com 으로 설정합니다...
 reg add "HKCU\Software\Policies\Google\Chrome" /v RestoreOnStartup /t REG_DWORD /d 4 /f > nul
