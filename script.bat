@@ -1,79 +1,82 @@
 @echo off
 setlocal
 
-:: =================================================================
-echo        Chrome, VSCode ÀÚµ¿ ¼³Ä¡ ¹× ¼³Á¤À» ½ÃÀÛÇÕ´Ï´Ù.
+echo =================================================================
+echo        Chrome, VSCode ìžë™ ì„¤ì¹˜ ë° ì„¤ì •ì„ ì‹œìž‘í•©ë‹ˆë‹¤.
 echo =================================================================
 echo.
-echo ÀÌ ½ºÅ©¸³Æ®´Â ´ÙÀ½ ÀÛ¾÷À» ÀÚµ¿À¸·Î ¼öÇàÇÕ´Ï´Ù.
-echo 1. ·¹Áö½ºÆ®¸® ÆíÁý Á¦ÇÑ Á¤Ã¥ ÇØÁ¦ ½Ãµµ
-echo 2. Chrome ¹× VSCode ÃÖ½Å ¹öÀü ¼³Ä¡ (»ç¿ëÀÚ ¼öÁØ)
-echo 3. Chrome ½ÃÀÛ ÆäÀÌÁö¸¦ https://github.com À¸·Î ¼³Á¤
-echo.
-echo Àá½Ã ±â´Ù·Á ÁÖ¼¼¿ä...
+echo ìž ì‹œ ê¸°ë‹¤ë ¤ ì£¼ì„¸ìš”...
 echo.
 
-:: ´Ù¿î·Îµå ¹× ¼³Ä¡¸¦ À§ÇÑ ÀÓ½Ã Æú´õ ¼³Á¤
-set "DOWNLOAD_DIR=%TEMP%\Installers"
-if not exist "%DOWNLOAD_DIR%" (
-    mkdir "%DOWNLOAD_DIR%"
+:: ë‹¤ìš´ë¡œë“œ ë° ìž„ì‹œ íŒŒì¼ ì €ìž¥ì„ ìœ„í•œ í´ë” ì„¤ì • (%TEMP%ëŠ” í•­ìƒ ì“°ê¸° ê°€ëŠ¥)
+set "WORK_DIR=%TEMP%\Installers"
+if not exist "%WORK_DIR%" (
+    mkdir "%WORK_DIR%"
 )
-cd /d "%DOWNLOAD_DIR%"
+cd /d "%WORK_DIR%"
 
-:: 1. ·¹Áö½ºÆ®¸® ÆíÁý Á¦ÇÑ ÇØÁ¦ ½Ãµµ
-echo [1/5] '·¹Áö½ºÆ®¸® ÆíÁý Á¦ÇÑ' Á¤Ã¥À» ÇØÁ¦ÇÕ´Ï´Ù...
+:: 1. ë ˆì§€ìŠ¤íŠ¸ë¦¬ íŽ¸ì§‘ ì œí•œ í•´ì œ ì‹œë„
+echo [1/5] 'ë ˆì§€ìŠ¤íŠ¸ë¦¬ íŽ¸ì§‘ ì œí•œ' ì •ì±… í•´ì œë¥¼ ì‹œë„í•©ë‹ˆë‹¤...
 set "VBS_SCRIPT=%TEMP%\unlock_reg.vbs"
-(
-    echo On Error Resume Next
-    echo Dim WshShell, RegKey
-    echo Set WshShell = CreateObject("WScript.Shell")
-    echo RegKey = "HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\System\DisableRegistryTools"
-    echo WshShell.RegWrite RegKey, 0, "REG_DWORD"
-    echo Set WshShell = Nothing
-) > "%VBS_SCRIPT%"
 
-cscript //nologo "%VBS_SCRIPT%"
-del "%VBS_SCRIPT%"
-echo Á¤Ã¥ ÇØÁ¦ ½Ãµµ ¿Ï·á.
+:: VBScript ë‚´ìš©ì„ í•œ ì¤„ì”© ìž„ì‹œ í´ë”(%TEMP%)ì— ì”ë‹ˆë‹¤.
+echo On Error Resume Next > "%VBS_SCRIPT%"
+echo Dim WshShell, RegKey >> "%VBS_SCRIPT%"
+echo Set WshShell = CreateObject^("WScript.Shell"^) >> "%VBS_SCRIPT%"
+echo RegKey = "HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\System\DisableRegistryTools" >> "%VBS_SCRIPT%"
+echo WshShell.RegWrite RegKey, 0, "REG_DWORD" >> "%VBS_SCRIPT%"
+echo Set WshShell = Nothing >> "%VBS_SCRIPT%"
+
+if exist "%VBS_SCRIPT%" (
+    cscript //nologo "%VBS_SCRIPT%"
+::  del "%VBS_SCRIPT%"
+    echo ì •ì±… í•´ì œ ì‹œë„ ì™„ë£Œ.
+) else (
+    echo.
+    echo [ì˜¤ë¥˜] ìž„ì‹œ íŒŒì¼ ìƒì„±ì— ì‹¤íŒ¨í–ˆìŠµë‹ˆë‹¤.
+    echo ì•ˆí‹°ë°”ì´ëŸ¬ìŠ¤ í”„ë¡œê·¸ëž¨ì´ íŒŒì¼ ìƒì„±ì„ ì°¨ë‹¨í–ˆê±°ë‚˜,
+    echo ì‹œìŠ¤í…œì— ë“œë¬¸ ë¬¸ì œê°€ ìžˆì„ ìˆ˜ ìžˆìŠµë‹ˆë‹¤.
+    echo.
+    pause
+    exit /b
+)
 echo.
 
-:: 2-1. Google Chrome ´Ù¿î·Îµå
-echo [2/5] ÃÖ½Å ¹öÀüÀÇ Google ChromeÀ» ´Ù¿î·ÎµåÇÕ´Ï´Ù...
+:: 2-1. Google Chrome ë‹¤ìš´ë¡œë“œ
+echo [2/5] ìµœì‹  ë²„ì „ì˜ Google Chromeì„ ë‹¤ìš´ë¡œë“œí•©ë‹ˆë‹¤...
 curl -L "https://dl.google.com/chrome/install/375.126/chrome_installer.exe" -o ChromeInstaller.exe
 echo.
 
-:: 2-2. Google Chrome ¼³Ä¡
-echo [3/5] Google ChromeÀ» ¼³Ä¡ÇÕ´Ï´Ù...
+:: 2-2. Google Chrome ì„¤ì¹˜
+echo [3/5] Google Chromeì„ ì„¤ì¹˜í•©ë‹ˆë‹¤...
 start /wait ChromeInstaller.exe /silent /install
-echo Google Chrome ¼³Ä¡ ¿Ï·á.
+echo Google Chrome ì„¤ì¹˜ ì™„ë£Œ.
 echo.
 
-:: 2-3. Google Chrome ½ÃÀÛ ÆäÀÌÁö ¼³Á¤
-echo [4/5] Google ChromeÀÇ ½ÃÀÛ ÆäÀÌÁö¸¦ https://github.com À¸·Î ¼³Á¤ÇÕ´Ï´Ù...
-:: RestoreOnStartup: 4´Â 'Æ¯Á¤ ÆäÀÌÁö ¸ñ·Ï ¿­±â'¸¦ ÀÇ¹ÌÇÕ´Ï´Ù.
+:: 2-3. Google Chrome ì‹œìž‘ íŽ˜ì´ì§€ ì„¤ì •
+echo [4/5] Google Chromeì˜ ì‹œìž‘ íŽ˜ì´ì§€ë¥¼ https://github.com ìœ¼ë¡œ ì„¤ì •í•©ë‹ˆë‹¤...
 reg add "HKCU\Software\Policies\Google\Chrome" /v RestoreOnStartup /t REG_DWORD /d 4 /f > nul
-:: RestoreOnStartupURLs: ½ÃÀÛ ½Ã ¿­ ÆäÀÌÁö ¸ñ·ÏÀ» ¼³Á¤ÇÕ´Ï´Ù.
 reg add "HKCU\Software\Policies\Google\Chrome\RestoreOnStartupURLs" /v 1 /t REG_SZ /d "https://github.com" /f > nul
-echo ½ÃÀÛ ÆäÀÌÁö ¼³Á¤ ¿Ï·á.
+echo ì‹œìž‘ íŽ˜ì´ì§€ ì„¤ì • ì™„ë£Œ.
 echo.
 echo -----------------------------------------------------------------
 echo.
 
-:: 3. Visual Studio Code ´Ù¿î·Îµå ¹× ¼³Ä¡
-echo [5/5] ÃÖ½Å ¹öÀüÀÇ VSCode(»ç¿ëÀÚ ¹öÀü)¸¦ ´Ù¿î·ÎµåÇÏ°í ¼³Ä¡ÇÕ´Ï´Ù...
+:: 3. Visual Studio Code ë‹¤ìš´ë¡œë“œ ë° ì„¤ì¹˜
+echo [5/5] ìµœì‹  ë²„ì „ì˜ VSCode(ì‚¬ìš©ìž ë²„ì „)ë¥¼ ë‹¤ìš´ë¡œë“œí•˜ê³  ì„¤ì¹˜í•©ë‹ˆë‹¤...
 curl -L "https://code.visualstudio.com/sha/download?build=stable&os=win32-x64-user" -o VSCodeSetup.exe
 start /wait VSCodeSetup.exe /VERYSILENT /MERGETASKS=!runcode
-echo Visual Studio Code ¼³Ä¡ ¿Ï·á.
+echo Visual Studio Code ì„¤ì¹˜ ì™„ë£Œ.
 echo.
 
-:: 4. Á¤¸® ÀÛ¾÷
-echo ´Ù¿î·ÎµåÇÑ ¼³Ä¡ ÆÄÀÏÀ» Á¤¸®ÇÕ´Ï´Ù...
+:: 4. ì •ë¦¬ ìž‘ì—…
+echo ë‹¤ìš´ë¡œë“œí•œ ì„¤ì¹˜ íŒŒì¼ì„ ì •ë¦¬í•©ë‹ˆë‹¤...
 cd /d "%~dp0"
-rmdir /s /q "%DOWNLOAD_DIR%"
+rmdir /s /q "%WORK_DIR%"
 echo.
 
 echo =================================================================
-echo          ¸ðµç ¼³Ä¡ ¹× ¼³Á¤ÀÌ ¼º°øÀûÀ¸·Î ¿Ï·áµÇ¾ú½À´Ï´Ù.
+echo          ëª¨ë“  ì„¤ì¹˜ ë° ì„¤ì •ì´ ì„±ê³µì ìœ¼ë¡œ ì™„ë£Œë˜ì—ˆìŠµë‹ˆë‹¤.
 echo =================================================================
 echo.
 
