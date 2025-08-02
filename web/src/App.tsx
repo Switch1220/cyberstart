@@ -180,7 +180,7 @@ const DownloadCard = ({
           <span>설치하기 귀찮아.</span>
         </div>
         <p className="text-white/60 text-balance text-sm transition-colors duration-300">
-          cmd와 powershell이 안된다? 그럼 exe로 구워서 실행하면 되는거 아님?
+          그래서준비했습니다당신을위한원클릭프로그램
         </p>
       </div>
 
@@ -247,18 +247,25 @@ export default function App() {
       <div className="relative z-10 text-center mx-auto">
         <Header />
         <DownloadCard state={state} onDownload={startDownload} />
-        <div className="mt-8 flex items-center justify-center gap-2">
-          <p className="text-white/40 text-sm transition-colors duration-300 hover:text-white/60">
-            By 일병 한믿음
-          </p>
+        <div className="mt-8 flex items-center justify-center gap-2 text-sm">
+          <a
+            href="https://github.com/Switch1220"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 px-2 py-1 text-white/80 hover:text-white transition-colors duration-300 rounded-md hover:bg-white/10"
+            title="GitHub Profile"
+          >
+            by =한믿음
+          </a>
           <a
             href="https://github.com/Switch1220/cyberstart"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center p-1 text-white/40 hover:text-white/80 transition-colors duration-300 rounded-md hover:bg-white/10"
+            className="inline-flex items-center gap-1 px-2 py-1 text-white/80 hover:text-white transition-colors duration-300 rounded-md hover:bg-white/10"
             title="GitHub Repository"
           >
             <img src={GithubIcon} alt="GitHub" className="w-4 h-4" />
+            <span>cyberstart</span>
           </a>
         </div>
       </div>
