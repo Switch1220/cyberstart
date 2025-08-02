@@ -29,7 +29,7 @@ const Header = () => (
       <span className="text-sm font-medium text-white/90">.exe로 문제없이</span>
     </div>
 
-    <h1 className="text-5xl md:text-7xl font-medium bg-gradient-to-r from-white via-purple-200 to-pink-200 bg-clip-text text-transparent mb-6 leading-tight">
+    <h1 className="text-5xl md:text-7xl font-medium bg-gradient-to-r from-white via-purple-200 to-pink-200 bg-clip-text text-transparent md:mb-6 leading-tight">
       원클릭으로
     </h1>
 
@@ -172,9 +172,9 @@ const DownloadCard = ({
   const hasMessage = state !== "idle";
 
   return (
-    <div className="bg-white/10 backdrop-blur-lg rounded-3xl border border-white/20 p-8 md:p-12 shadow-2xl transition-all duration-500 ease-in-out hover:bg-white/15">
+    <div className="bg-white/10 backdrop-blur-lg rounded-3xl border border-white/20 p-8 md:p-10 shadow-2xl transition-all duration-500 ease-in-out hover:bg-white/15">
       {/* 설명 텍스트 */}
-      <div className="mb-8">
+      <div className="mb-6">
         <div className="text-white/80 text-balance text-lg mb-2 transition-colors duration-300">
           <span>사지방에서 매번</span>
           <span>설치하기 귀찮아.</span>
@@ -247,7 +247,7 @@ export default function App() {
       <div className="relative z-10 text-center mx-auto">
         <Header />
         <DownloadCard state={state} onDownload={startDownload} />
-        <div className="mt-8 flex items-center justify-center gap-2 text-sm">
+        <div className="mt-4 flex items-center justify-center gap-2 text-sm">
           <a
             href="https://github.com/Switch1220"
             target="_blank"
