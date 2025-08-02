@@ -11,7 +11,7 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  base: "/cyberstart/",
+  // base: "/cyberstart/",
   build: {
     outDir: "../docs",
   },
