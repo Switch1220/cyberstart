@@ -286,6 +286,13 @@ async function downloadFile(): Promise<void> {
     },
   });
 
+  // @ts-ignore
+  if (window.navigator && window.navigator.msSaveOrOpenBlob) {
+    const blob = await response.blob();
+    // @ts-ignore
+    window.navigator.msSaveOrOpenBlob(blob, FILE_NAME);
+  }
+
   if (!response.ok) {
     throw new Error("네트워크 오류.");
   }
