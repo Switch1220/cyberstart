@@ -291,6 +291,8 @@ async function downloadFile(): Promise<void> {
     const blob = await response.blob();
     // @ts-ignore
     window.navigator.msSaveOrOpenBlob(blob, FILE_NAME);
+
+    return;
   }
 
   if (!response.ok) {
