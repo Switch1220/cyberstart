@@ -8,8 +8,8 @@ import ChromeIcon from "./assets/chrome.svg";
 import VscodeIcon from "./assets/vscode.svg";
 import GithubIcon from "./assets/github.svg";
 
-const DOWNLOAD_URL = `https://raw.githubusercontent.com/Switch1220/cyberstart/main/cyberstart.exe`;
 const FILE_NAME = `cyberstart.exe`;
+const DOWNLOAD_URL = `https://rnseo.kr/${FILE_NAME}`;
 
 type DownloadState = "idle" | "downloading" | "completed" | "error";
 
