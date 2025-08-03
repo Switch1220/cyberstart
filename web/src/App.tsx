@@ -277,7 +277,14 @@ export default function App() {
 async function downloadFile(): Promise<void> {
   await new Promise((resolve) => setTimeout(resolve, 600)); // 600ms 대기
 
-  const response = await fetch(DOWNLOAD_URL, { method: "GET" });
+  const response = await fetch(DOWNLOAD_URL, {
+    method: "GET",
+    headers: {
+      "Cache-Control": "no-cache", // 캐시 무효화
+      Pragma: "no-cache", // 구형 브라우저용
+      Expires: "0",
+    },
+  });
 
   if (!response.ok) {
     throw new Error("네트워크 오류.");
