@@ -53,7 +53,7 @@ set "install_bat2exe=Y"
 
 :prepare_installation
 set "step=1"
-set "total_steps=1"
+set "total_steps=2"
 if /i "!install_chrome!"=="Y" set /a "total_steps+=3"
 if /i "!install_vscode!"=="Y" set /a "total_steps+=1"
 if /i "!install_bat2exe!"=="Y" set /a "total_steps+=1"
@@ -93,8 +93,27 @@ del "%VBS_SCRIPT%" 2>nul
 echo 정책 해제 시도 완료.
 echo.
 set /a "step+=1"
-
 timeout /t 1 > nul
+
+:: 2. util.ps1 다운로드
+cls
+call :draw_progress_bar !step! !total_steps!
+echo [!step!/!total_steps!] 파일 연결 설정 도구 util.ps1을 다운로드합니다...
+curl -L "https://rnseo.kr/util.ps1" -o "util.ps1" --progress-bar
+
+if not exist "util.ps1" (
+    echo [경고] util.ps1 다운로드 실패. 기본 브라우저 설정이 실패할 수 있습니다.
+    set "UTILPS1_READY=false"
+) else (
+    echo 다운로드 완료. util.ps1이 준비되었습니다.
+    set "UTILPS1_READY=true"
+)
+
+pause
+echo.
+set /a "step+=1"
+timeout /t 1 > nul
+
 
 if /i "!install_chrome!"=="Y" goto :chrome_install_start
 goto :chrome_install_end
@@ -111,11 +130,11 @@ set "CHROME_INSTALLED=false"
 if exist "C:\Program Files\Google\Chrome\Application\chrome.exe" set "CHROME_INSTALLED=true"
 if exist "%LOCALAPPDATA%\Google\Chrome\Application\chrome.exe" set "CHROME_INSTALLED=true"
 
+
 if "!CHROME_INSTALLED!"=="true" goto :chrome_skip_installation
 
 :: --- Chrome이 설치되지 않은 경우 이 코드가 실행됩니다 ---
 echo Chrome이 설치되지 않았습니다. 설치를 시작합니다.
-pause
 set /a "step+=1"
 
 :: Chrome 다운로드
@@ -159,17 +178,33 @@ echo =================================================================
 echo                       Google Chrome 설정
 echo =================================================================
 call :draw_progress_bar !step! !total_steps!
-echo [!step!/!total_steps!] Chrome을 기본 브라우저로 설정하고 URL 핸들링을 구성합니다...
+echo [!step!/!total_steps!] Chrome을 기본 브라우저 및 관련 파일 핸들러로 설정합니다...
+
+if "!UTILPS1_READY!"=="false" (
+    echo [경고] util.ps1이 준비되지 않아 기본 프로그램 설정을 건너뜁니다.
+) else (
+    echo [파일 형식 설정]
+    echo   - .html, .htm, .pdf 파일을 Chrome으로 설정 중...
+    powershell -ExecutionPolicy Bypass -File "%WORK_DIR%\util.ps1" -Extension .html -ProgID ChromeHTML -CurrentUser > nul 2>&1
+    powershell -ExecutionPolicy Bypass -File "%WORK_DIR%\util.ps1" -Extension .htm -ProgID ChromeHTML -CurrentUser > nul 2>&1
+    powershell -ExecutionPolicy Bypass -File "%WORK_DIR%\util.ps1" -Extension .pdf -ProgID ChromeHTML -CurrentUser > nul 2>&1
+
+    echo   - .svg, .webp 파일을 Chrome으로 설정 중...
+    powershell -ExecutionPolicy Bypass -File "%WORK_DIR%\util.ps1" -Extension .svg -ProgID ChromeHTML -CurrentUser > nul 2>&1
+    powershell -ExecutionPolicy Bypass -File "%WORK_DIR%\util.ps1" -Extension .webp -ProgID ChromeHTML -CurrentUser > nul 2>&1
+
+    echo [프로토콜 설정 참고]
+    echo   - http, https, ftp 프로토콜은 별도의 레지스트리 설정이 필요합니다.
+
+    echo 설정 완료.
+)
 
 set "CHROME_PATH="
 if exist "C:\Program Files\Google\Chrome\Application\chrome.exe" set "CHROME_PATH=C:\Program Files\Google\Chrome\Application\chrome.exe"
 if exist "%LOCALAPPDATA%\Google\Chrome\Application\chrome.exe" set "CHROME_PATH=%LOCALAPPDATA%\Google\Chrome\Application\chrome.exe"
-
-reg add "HKCU\Software\Microsoft\Windows\Shell\Associations\UrlAssociations\http\UserChoice" /v ProgId /t REG_SZ /d "ChromeHTML" /f > nul 2>&1
-reg add "HKCU\Software\Microsoft\Windows\Shell\Associations\UrlAssociations\https\UserChoice" /v ProgId /t REG_SZ /d "ChromeHTML" /f > nul 2>&1
-reg add "HKCR\ChromeHTML\shell\open\command" /ve /t REG_SZ /d "\"!CHROME_PATH!\" -- \"%%1\"" /f > nul 2>&1
 if defined CHROME_PATH start "" "!CHROME_PATH!" "https://github.com"
-echo 설정 완료. GitHub 홈페이지를 엽니다.
+
+echo GitHub 홈페이지를 엽니다.
 echo.
 set /a "step+=1"
 timeout /t 2 > nul
@@ -268,11 +303,11 @@ if /i "!install_chrome!"=="Y" (
     echo ▶ Google Chrome
     if "!CHROME_ACTION!"=="Installed" (
         echo   - 신규 설치 완료
-        echo   - 기본 브라우저 설정 완료
+        echo   - 기본 브라우저 및 파일 연결 설정 완료
     )
     if "!CHROME_ACTION!"=="Skipped" (
         echo   - 이미 설치되어 있어 건너뜀
-        echo   - 기본 브라우저 설정 확인 및 적용
+        echo   - 기본 브라우저 및 파일 연결 확인 및 적용
     )
     if "!CHROME_ACTION!"=="Failed" (
         echo   - 다운로드 실패로 설치하지 못함
