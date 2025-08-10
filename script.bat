@@ -6,7 +6,7 @@ echo        프로그램 자동 설치 및 설정 스크립트
 echo =================================================================
 echo.
 echo 설치 가능한 프로그램:
-echo   1. Google Chrome (GitHub 시작페이지 설정 포함)
+echo   1. Google Chrome
 echo   2. Visual Studio Code
 echo   3. Batch to Exe Converter
 echo.
@@ -71,7 +71,7 @@ set "step=1"
 set "total_steps=1"
 
 :: 총 단계 수 계산
-if /i "!install_chrome!"=="Y" set /a "total_steps+=2"
+if /i "!install_chrome!"=="Y" set /a "total_steps+=3"
 if /i "!install_vscode!"=="Y" set /a "total_steps+=1"
 if /i "!install_bat2exe!"=="Y" set /a "total_steps+=1"
 
@@ -102,8 +102,34 @@ if exist "%VBS_SCRIPT%" (
 echo.
 set /a "step+=1"
 
-:: 2. Google Chrome 설치
+:: 2. Google Chrome 설치 확인 및 설치
 if /i "!install_chrome!"=="Y" (
+    echo [!step!/!total_steps!] Google Chrome 설치 상태를 확인합니다...
+    
+    :: Chrome 설치 경로 확인
+    set "CHROME_INSTALLED=false"
+    set "CHROME_PATH="
+    
+    if exist "C:\Program Files\Google\Chrome\Application\chrome.exe" (
+        set "CHROME_PATH=C:\Program Files\Google\Chrome\Application\chrome.exe"
+        set "CHROME_INSTALLED=true"
+    ) else if exist "%LOCALAPPDATA%\Google\Chrome\Application\chrome.exe" (
+        set "CHROME_PATH=%LOCALAPPDATA%\Google\Chrome\Application\chrome.exe"
+        set "CHROME_INSTALLED=true"
+    )
+    
+    if "!CHROME_INSTALLED!"=="true" (
+        echo Google Chrome이 이미 설치되어 있습니다.
+        echo 설치 경로: !CHROME_PATH!
+        echo Chrome 설치 단계를 건너뜁니다.
+        set /a "step+=1"
+        goto :chrome_browser_setup
+    )
+    
+    echo Chrome이 설치되지 않아 설치를 진행합니다...
+    echo.
+    set /a "step+=1"
+
     echo [!step!/!total_steps!] 최신 버전의 Google Chrome을 다운로드합니다...
     curl -L "https://dl.google.com/chrome/install/375.126/chrome_installer.exe" -o ChromeInstaller.exe
     
@@ -120,27 +146,56 @@ if /i "!install_chrome!"=="Y" (
     start /wait ChromeInstaller.exe /silent /install
     echo Google Chrome 설치 완료.
     
-    :: GitHub 홈페이지 열기
-    echo GitHub 홈페이지를 Chrome으로 엽니다...
-    set "CHROME_PATH="
+    :: 설치 후 경로 재설정
     if exist "C:\Program Files\Google\Chrome\Application\chrome.exe" (
         set "CHROME_PATH=C:\Program Files\Google\Chrome\Application\chrome.exe"
     ) else if exist "%LOCALAPPDATA%\Google\Chrome\Application\chrome.exe" (
         set "CHROME_PATH=%LOCALAPPDATA%\Google\Chrome\Application\chrome.exe"
     )
-
+    echo.
+    set /a "step+=1"
+    
+    :chrome_browser_setup
+    echo [!step!/!total_steps!] Chrome을 기본 브라우저로 설정하고 URL 핸들링을 구성합니다...
+    
+    :: Chrome을 기본 브라우저로 설정
+    reg add "HKCU\Software\Microsoft\Windows\Shell\Associations\UrlAssociations\http\UserChoice" /v ProgId /t REG_SZ /d "ChromeHTML" /f > nul 2>&1
+    reg add "HKCU\Software\Microsoft\Windows\Shell\Associations\UrlAssociations\https\UserChoice" /v ProgId /t REG_SZ /d "ChromeHTML" /f > nul 2>&1
+    reg add "HKCU\Software\Microsoft\Windows\Shell\Associations\UrlAssociations\ftp\UserChoice" /v ProgId /t REG_SZ /d "ChromeHTML" /f > nul 2>&1
+    reg add "HKCU\Software\Microsoft\Windows\Shell\Associations\FileAssociations\.html\UserChoice" /v ProgId /t REG_SZ /d "ChromeHTML" /f > nul 2>&1
+    reg add "HKCU\Software\Microsoft\Windows\Shell\Associations\FileAssociations\.htm\UserChoice" /v ProgId /t REG_SZ /d "ChromeHTML" /f > nul 2>&1
+    
+    :: 기본 브라우저 설정 (추가)
+    reg add "HKCU\Software\Clients\StartMenuInternet" /ve /t REG_SZ /d "Google Chrome" /f > nul 2>&1
+    reg add "HKCU\Software\RegisteredApplications" /v "Google Chrome" /t REG_SZ /d "Software\Clients\StartMenuInternet\Google Chrome\Capabilities" /f > nul 2>&1
+    
+    :: Chrome HTML 핸들러 등록
+    reg add "HKCR\ChromeHTML" /ve /t REG_SZ /d "Chrome HTML Document" /f > nul 2>&1
+    reg add "HKCR\ChromeHTML\shell\open\command" /ve /t REG_SZ /d "\"!CHROME_PATH!\" -- \"%%1\"" /f > nul 2>&1
+    reg add "HKCR\ChromeHTML\DefaultIcon" /ve /t REG_SZ /d "\"!CHROME_PATH!\",0" /f > nul 2>&1
+    
+    :: URL 프로토콜 핸들러 설정
+    reg add "HKCR\http\shell\open\command" /ve /t REG_SZ /d "\"!CHROME_PATH!\" -- \"%%1\"" /f > nul 2>&1
+    reg add "HKCR\https\shell\open\command" /ve /t REG_SZ /d "\"!CHROME_PATH!\" -- \"%%1\"" /f > nul 2>&1
+    reg add "HKCR\ftp\shell\open\command" /ve /t REG_SZ /d "\"!CHROME_PATH!\" -- \"%%1\"" /f > nul 2>&1
+    
+    :: 파일 연결 설정
+    reg add "HKCR\.html" /ve /t REG_SZ /d "ChromeHTML" /f > nul 2>&1
+    reg add "HKCR\.htm" /ve /t REG_SZ /d "ChromeHTML" /f > nul 2>&1
+    reg add "HKCR\.shtml" /ve /t REG_SZ /d "ChromeHTML" /f > nul 2>&1
+    reg add "HKCR\.xht" /ve /t REG_SZ /d "ChromeHTML" /f > nul 2>&1
+    reg add "HKCR\.xhtml" /ve /t REG_SZ /d "ChromeHTML" /f > nul 2>&1
+    
+    echo Chrome 기본 브라우저 설정 완료.
+    
+    :: GitHub 홈페이지 열기
+    echo GitHub 홈페이지를 Chrome으로 엽니다...
     if defined CHROME_PATH (
         start "" "!CHROME_PATH!" "https://github.com"
         echo GitHub 홈페이지를 열었습니다.
     ) else (
         echo [경고] Chrome 실행 파일을 찾을 수 없어 GitHub을 자동으로 열지 못했습니다.
     )
-
-    :: Chrome 시작 페이지 설정
-    echo Google Chrome의 시작 페이지를 https://github.com 으로 설정합니다...
-    reg add "HKCU\Software\Policies\Google\Chrome" /v RestoreOnStartup /t REG_DWORD /d 4 /f > nul 2>&1
-    reg add "HKCU\Software\Policies\Google\Chrome\RestoreOnStartupURLs" /v 1 /t REG_SZ /d "https://github.com" /f > nul 2>&1
-    echo 시작 페이지 설정 완료.
     echo.
     set /a "step+=1"
     
@@ -186,7 +241,7 @@ echo          선택된 프로그램의 설치가 완료되었습니다.
 echo =================================================================
 echo.
 echo 설치된 프로그램:
-if /i "!install_chrome!"=="Y" echo   ✓ Google Chrome (시작페이지: GitHub)
+if /i "!install_chrome!"=="Y" echo   ✓ Google Chrome (기본 브라우저)
 if /i "!install_vscode!"=="Y" echo   ✓ Visual Studio Code
 if /i "!install_bat2exe!"=="Y" echo   ✓ Batch to Exe Converter (바탕화면 폴더)
 echo.
