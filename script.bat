@@ -2,6 +2,8 @@
 setlocal enabledelayedexpansion
 chcp 949 > nul
 
+title Cyberstart
+
 :main_menu
 cls
 echo =================================================================
