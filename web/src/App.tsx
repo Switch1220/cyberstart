@@ -25,7 +25,10 @@ const BackgroundDecorations = () => (
 const Header = () => (
   <div className="mb-2">
     <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20">
-      <Sparkles className="w-4 h-4 text-yellow-400" />
+      <Sparkles 
+        className="w-4 h-4" 
+        style={{ color: '#facc15' }} // 명시적 yellow-400 색상
+      />
       <span className="text-sm font-medium text-white/90">.exe로 문제없이</span>
     </div>
 
@@ -74,7 +77,7 @@ const getButtonContent = (state: DownloadState) => {
   return contentMap[state];
 };
 
-// 버튼 스타일 반환 함수 (애니메이션 추가)
+// 버튼 스타일 반환 함수 (레거시 브라우저 폴백 추가)
 const getButtonStyles = (state: DownloadState) => {
   const baseStyles = `
     relative overflow-hidden group
@@ -86,30 +89,30 @@ const getButtonStyles = (state: DownloadState) => {
   `;
 
   const stateStyles = {
-    idle: "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700",
-    downloading: "bg-gradient-to-r from-purple-600 to-pink-600 animate-pulse",
-    completed:
-      "bg-gradient-to-r from-green-600 to-emerald-600 animate-in zoom-in duration-500",
-    error:
-      "bg-gradient-to-r from-red-600 to-orange-600 animate-in fade-in duration-300",
+    idle: "bg-purple-600 hover:bg-purple-700", // 레거시 폴백
+    downloading: "bg-purple-600", // 레거시 폴백
+    completed: "bg-green-600", // 레거시 폴백
+    error: "bg-red-600", // 레거시 폴백
   };
 
   return `${baseStyles} ${stateStyles[state]}`;
 };
 
-// 글로우 효과 스타일 반환 함수 (애니메이션 추가)
+// 글로우 효과 스타일 반환 함수 (레거시 브라우저 폴백 추가)
 const getGlowStyles = (state: DownloadState) => {
+  const baseGlowClass = "absolute inset-0 rounded-2xl blur-lg opacity-50 group-hover:opacity-75 transition-all duration-500 ease-in-out -z-10";
+  
   const glowColors = {
-    idle: "from-purple-600 to-pink-600",
-    downloading: "from-purple-600 to-pink-600",
-    completed: "from-green-600 to-emerald-600",
-    error: "from-red-600 to-orange-600",
+    idle: "bg-purple-600", // 레거시 폴백
+    downloading: "bg-purple-600", // 레거시 폴백  
+    completed: "bg-green-600", // 레거시 폴백
+    error: "bg-red-600", // 레거시 폴백
   };
 
-  return `absolute inset-0 rounded-2xl blur-lg opacity-50 group-hover:opacity-75 transition-all duration-500 ease-in-out -z-10 bg-gradient-to-r ${glowColors[state]}`;
+  return `${baseGlowClass} ${glowColors[state]}`;
 };
 
-// 다운로드 버튼 컴포넌트 (애니메이션 개선)
+// 다운로드 버튼 컴포넌트 (레거시 브라우저 호환성 개선)
 const DownloadButton = ({
   state,
   onDownload,
@@ -119,6 +122,20 @@ const DownloadButton = ({
 }) => {
   const { icon, text } = getButtonContent(state);
 
+  // 레거시 브라우저용 그라데이션 폴백
+  const getInlineStyles = (state: DownloadState) => {
+    const gradients = {
+      idle: 'linear-gradient(to right, #9333ea, #db2777)',
+      downloading: 'linear-gradient(to right, #9333ea, #db2777)', 
+      completed: 'linear-gradient(to right, #059669, #047857)',
+      error: 'linear-gradient(to right, #dc2626, #ea580c)',
+    };
+
+    return {
+      background: gradients[state],
+    };
+  };
+
   return (
     <div className="flex justify-center">
       <div className="relative">
@@ -126,6 +143,7 @@ const DownloadButton = ({
           onClick={onDownload}
           disabled={state === "downloading"}
           className={getButtonStyles(state)}
+          style={getInlineStyles(state)} // 인라인 스타일로 그라데이션 추가
         >
           {/* 버튼 배경 효과 */}
           <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
