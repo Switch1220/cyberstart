@@ -149,7 +149,7 @@ const DownloadButton = ({
           <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
 
           {/* 버튼 내용 */}
-          <div className="relative flex items-center gap-3 font-light">
+          <div className="relative flex items-center gap-3 font-light text-primary-foreground">
             <div className="transition-all duration-300 ease-in-out">
               {icon}
             </div>
