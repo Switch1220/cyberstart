@@ -7,16 +7,17 @@ title Cyberstart
 :main_menu
 call :show_section_header "Cyberstart: 프로그램 자동 설치 및 설정 스크립트"
 echo.
-echo 설치 가능한 프로그램:
-echo   1. Google Chrome
-echo   2. Visual Studio Code
-echo   3. Batch to Exe Converter
+echo  ◇ 설치 가능한 프로그램:
+echo      1. Google Chrome
+echo      2. Visual Studio Code
+echo      3. Batch to Exe Converter
 echo.
-echo 설치 방법을 선택해주세요:
-echo   [Enter] 또는 [Y]: 모든 프로그램 설치
-echo   [N]: 개별 프로그램 선택하여 설치
+echo  ◇ 설치 방법을 선택해주세요:
+echo      [Enter] 또는 [Y]: 모든 프로그램 설치
+echo      [N]: 개별 프로그램 선택하여 설치
 echo.
-set /p "choice=선택 (Enter/Y/N): "
+
+set /P "choice=▒▷ 선택 (Enter/Y/N): "
 
 :: 기본값 처리 (엔터만 눌렀을 경우)
 if "!choice!"=="" set "choice=Y"
@@ -245,12 +246,7 @@ timeout /t 1 > nul
 goto :final_summary
 
 :final_summary
-cls
-echo =================================================================
-echo                설치가 완료되었습니다. Happy hacking^^!
-echo =================================================================
-echo.
-echo.
+call :show_section_header "설치가 완료되었습니다. Happy hacking\!"
 
 if /i "!install_chrome!"=="Y" (
     echo ▶ Google Chrome
@@ -306,9 +302,8 @@ exit /b
 :: =================================================================
 :show_section_header
 cls
-echo =================================================================
-echo                      %~1
-echo =================================================================
+echo.
+echo  ◆ %~1
 goto :eof
 
 :: =================================================================
