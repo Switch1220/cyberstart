@@ -9,8 +9,9 @@ call :show_section_header "Cyberstart: 프로그램 자동 설치 및 설정 스
 echo.
 echo  ◇ 설치 가능한 프로그램:
 echo      1. Google Chrome
-echo      2. Visual Studio Code
-echo      3. Batch to Exe Converter
+echo      2. Kollus PC Player Agent
+echo      3. Visual Studio Code
+echo      4. Batch to Exe Converter
 echo.
 echo  ◇ 설치 방법을 선택해주세요:
 echo      [Enter] 또는 [Y]: 모든 프로그램 설치
@@ -37,6 +38,7 @@ goto :main_menu
 call :show_section_header "설치를 진행 할 프로그램 선택"
 echo.
 set /p "install_chrome=Google Chrome을 설치하시겠습니까? (Y/N): "
+set /p "install_kollus=Kollus PC Player Agent를 설치하시겠습니까? (Y/N): "
 set /p "install_vscode=Visual Studio Code를 설치하시겠습니까? (Y/N): "
 set /p "install_bat2exe=Batch to Exe Converter를 설치하시겠습니까? (Y/N): "
 goto :prepare_installation
@@ -45,11 +47,13 @@ goto :prepare_installation
 set "install_chrome=Y"
 set "install_vscode=Y"
 set "install_bat2exe=Y"
+set "install_kollus=Y"
 
 :prepare_installation
 set "step=1"
 set "total_steps=1"
 if /i "!install_chrome!"=="Y" set /a "total_steps+=4"
+if /i "!install_kollus!"=="Y" set /a "total_steps+=1"
 if /i "!install_vscode!"=="Y" set /a "total_steps+=1"
 if /i "!install_bat2exe!"=="Y" set /a "total_steps+=1"
 
@@ -179,6 +183,38 @@ timeout /t 2 > nul
 
 :chrome_install_end
 
+if /i "!install_kollus!"=="Y" goto :kollus_install_start
+goto :kollus_install_end
+
+:kollus_install_start
+call :show_section_header "Kollus PC Player Agent 설치"
+call :show_progress_message !step! !total_steps! "Kollus PC Player Agent를 다운로드 및 설치합니다..."
+
+set "KOLLUS_INSTALLED=false"
+if exist "%LOCALAPPDATA%\Kollus\KollusAgent.exe" set "KOLLUS_INSTALLED=true"
+if exist "C:\Program Files\Kollus\KollusAgent.exe" set "KOLLUS_INSTALLED=true"
+if exist "C:\Program Files (x86)\Kollus\KollusAgent.exe" set "KOLLUS_INSTALLED=true"
+
+if "!KOLLUS_INSTALLED!"=="true" (
+    echo Kollus PC Player Agent가 이미 설치되어 있습니다.
+    set "KOLLUS_ACTION=Skipped"
+) else (
+    echo Kollus PC Player Agent를 다운로드 및 설치합니다...
+    curl -L "https://v.kr.kollus.com/pc_player_install/agent" -o "KollusAgentSetup.exe" --progress-bar
+    if exist "KollusAgentSetup.exe" (
+        start /wait KollusAgentSetup.exe
+        echo 설치 완료.
+        set "KOLLUS_ACTION=Installed"
+    ) else (
+        echo [경고] Kollus Agent 다운로드 실패.
+        set "KOLLUS_ACTION=Failed"
+    )
+)
+set /a "step+=1"
+timeout /t 2 > nul
+
+:kollus_install_end
+
 if /i "!install_vscode!"=="Y" goto :vscode_install_start
 goto :vscode_install_end
 
@@ -285,6 +321,19 @@ if /i "!install_bat2exe!"=="Y" (
         echo   - 다운로드 및 압축 해제 완료 ^(바탕화면^)
     )
     if "!BAT2EXE_ACTION!"=="Failed" (
+        echo   - 다운로드 실패로 설치하지 못함
+    )
+)
+
+if /i "!install_kollus!"=="Y" (
+    echo ▶ Kollus PC Player Agent
+    if "!KOLLUS_ACTION!"=="Installed" (
+        echo   - 신규 설치 완료
+    )
+    if "!KOLLUS_ACTION!"=="Skipped" (
+        echo   - 이미 설치되어 있어 건너뜀
+    )
+    if "!KOLLUS_ACTION!"=="Failed" (
         echo   - 다운로드 실패로 설치하지 못함
     )
 )

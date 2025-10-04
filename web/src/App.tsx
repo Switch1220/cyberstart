@@ -1,15 +1,21 @@
 "use client";
 
-import { useState } from "react";
-import { Download, CheckCircle, Sparkles, AlertCircle } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Download, CheckCircle, Sparkles, AlertCircle, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 import ChromeIcon from "./assets/chrome.svg";
 import VscodeIcon from "./assets/vscode.svg";
 import GithubIcon from "./assets/github.svg";
 
-const FILE_NAME = `cyberstart.exe`;
-const DOWNLOAD_URL = `https://rnseo.kr/${FILE_NAME}`;
+type FileName = "cyberstart.exe" | "kollus.exe";
+
+const FILE_OPTIONS: { value: FileName; label: string }[] = [
+  { value: "cyberstart.exe", label: "기본" },
+  { value: "kollus.exe", label: "Kollus Agent 포함" },
+];
+
+const getDownloadUrl = (fileName: FileName) => `https://rnseo.kr/${fileName}`;
 
 type DownloadState = "idle" | "downloading" | "completed" | "error";
 
@@ -32,11 +38,11 @@ const Header = () => (
       <span className="text-sm font-medium text-white/90">.exe로 문제없이</span>
     </div>
 
-    <h1 className="text-5xl md:text-7xl font-medium bg-gradient-to-r from-white via-purple-200 to-pink-200 bg-clip-text text-transparent md:mb-6 leading-tight">
+    <h1 className="text-5xl md:mt-3 md:text-7xl font-medium bg-gradient-to-r from-white via-purple-200 to-pink-200 bg-clip-text text-transparent md:mb-6 leading-tight">
       원클릭으로
     </h1>
 
-    <div className="flex flex-col md:flex-row justify-center items-center text-xl md:text-2xl text-white/70 font-light">
+    <div className="flex flex-col md:flex-row md:mt-4 justify-center items-center text-xl md:text-2xl text-white/70 font-light">
       <div className="flex flex-row">
         <img src={ChromeIcon} alt="" className="w-6 ml-2 mr-1" />
         <span>Chrome과</span>
@@ -80,12 +86,12 @@ const getButtonContent = (state: DownloadState) => {
 // 버튼 스타일 반환 함수 (레거시 브라우저 폴백 추가)
 const getButtonStyles = (state: DownloadState) => {
   const baseStyles = `
-    relative overflow-hidden group
-    h-16 px-12 text-lg font-semibold
+    relative overflow-hidden
+    h-16 pl-8 text-lg font-semibold
     border-0 rounded-full
-    transform transition-all duration-500 ease-in-out
+    transition-all duration-500 ease-in-out
     hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/25
-    disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none
+    disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100
   `;
 
   const stateStyles = {
@@ -115,12 +121,35 @@ const getGlowStyles = (state: DownloadState) => {
 // 다운로드 버튼 컴포넌트 (레거시 브라우저 호환성 개선)
 const DownloadButton = ({
   state,
+  selectedFile,
+  onFileChange,
   onDownload,
 }: {
   state: DownloadState;
+  selectedFile: FileName;
+  onFileChange: (file: FileName) => void;
   onDownload: () => void;
 }) => {
   const { icon, text } = getButtonContent(state);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // 외부 클릭 감지
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    if (isDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isDropdownOpen]);
 
   // 레거시 브라우저용 그라데이션 폴백
   const getInlineStyles = (state: DownloadState) => {
@@ -136,17 +165,24 @@ const DownloadButton = ({
     };
   };
 
+  const handleFileSelect = (file: FileName) => {
+    onFileChange(file);
+    setIsDropdownOpen(false);
+    // 파일 선택 후 즉시 다운로드 시작
+    onDownload();
+  };
+
   return (
     <div className="flex justify-center">
-      <div className="relative">
+      <div className="relative" ref={dropdownRef}>
         <Button
           onClick={onDownload}
           disabled={state === "downloading"}
-          className={getButtonStyles(state)}
+          className={`${getButtonStyles(state)} group`}
           style={getInlineStyles(state)} // 인라인 스타일로 그라데이션 추가
         >
           {/* 버튼 배경 효과 */}
-          <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <div className="absolute inset-0 rounded-full bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
 
           {/* 버튼 내용 */}
           <div className="relative flex items-center gap-3 font-light" style={{ color: '#ffffff' }}>
@@ -158,19 +194,91 @@ const DownloadButton = ({
             </span>
           </div>
 
+          {/* 드롭다운 버튼 (버튼 내부) */}
+          <div
+            role="button"
+            tabIndex={state === "downloading" ? -1 : 0}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (state !== "downloading") {
+                setIsDropdownOpen(!isDropdownOpen);
+              }
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                e.stopPropagation();
+                if (state !== "downloading") {
+                  setIsDropdownOpen(!isDropdownOpen);
+                }
+              }
+            }}
+            aria-disabled={state === "downloading"}
+            aria-expanded={isDropdownOpen}
+            aria-label="파일 선택"
+            className={`
+              group/dropdown relative overflow-hidden
+              w-10 h-10 rounded-full
+              flex items-center justify-center
+              transition-all duration-300
+              ${state === "downloading" ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
+              bg-transparent
+              hover:bg-white/10
+              ml-1
+            `}
+          >
+            {/* 호버 시 글래스 효과 */}
+            <div className="absolute inset-0 rounded-full bg-white/0 group-hover/dropdown:bg-white/20 backdrop-blur-sm border border-transparent group-hover/dropdown:border-white/20 transition-all duration-300"></div>
+            
+            {/* 아이콘 */}
+            <ChevronDown 
+              className={`w-4 h-4 relative z-10 transition-all duration-300 ${
+                isDropdownOpen ? 'rotate-180' : ''
+              }`}
+              style={{ color: '#ffffff' }}
+            />
+          </div>
+
           {/* 버튼 글로우 효과 */}
           <div className={getGlowStyles(state)}></div>
         </Button>
 
+        {/* 드롭다운 메뉴 - Button 외부로 이동 */}
+        {isDropdownOpen && (
+          <div className="absolute top-full right-0 mt-2 z-50 overflow-hidden rounded-lg border border-white/20 bg-slate-900/95 backdrop-blur-sm shadow-xl min-w-[160px]">
+            {FILE_OPTIONS.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleFileSelect(option.value);
+                }}
+                className={`
+                  w-full px-4 py-3 text-left
+                  transition-all duration-200
+                  ${
+                    option.value === selectedFile
+                      ? 'bg-purple-600/30 text-white'
+                      : 'text-white/80 hover:bg-white/10 hover:text-white'
+                  }
+                `}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        )}
+
         {/* 성공/에러 시 추가 효과 */}
         {state === "completed" && (
-          <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute inset-0">
             <div className="absolute inset-0 bg-green-400/20 rounded-full animate-ping"></div>
           </div>
         )}
 
         {state === "error" && (
-          <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute inset-0">
             <div className="absolute inset-0 bg-red-500/50 rounded-full animate-pulse"></div>
           </div>
         )}
@@ -182,9 +290,13 @@ const DownloadButton = ({
 // 다운로드 카드 컴포넌트
 const DownloadCard = ({
   state,
+  selectedFile,
+  onFileChange,
   onDownload,
 }: {
   state: DownloadState;
+  selectedFile: FileName;
+  onFileChange: (file: FileName) => void;
   onDownload: () => void;
 }) => {
   const hasMessage = state !== "idle";
@@ -202,8 +314,13 @@ const DownloadCard = ({
         </p>
       </div>
 
-      {/* 다운로드 버튼 */}
-      <DownloadButton state={state} onDownload={onDownload} />
+      {/* 다운로드 버튼 (드롭다운 포함) */}
+      <DownloadButton 
+        state={state} 
+        selectedFile={selectedFile}
+        onFileChange={onFileChange}
+        onDownload={onDownload} 
+      />
 
       {/* 상태별 추가 메시지 - 높이 변화를 부드럽게 */}
       <div
@@ -237,12 +354,13 @@ const DownloadCard = ({
 // 다운로드 상태 관리 훅
 const useDownload = () => {
   const [state, setState] = useState<DownloadState>("idle");
+  const [selectedFile, setSelectedFile] = useState<FileName>("cyberstart.exe");
 
   const startDownload = async () => {
     setState("downloading");
 
     try {
-      await downloadFile();
+      await downloadFile(selectedFile);
       setState("completed");
       setTimeout(() => setState("idle"), 2000);
     } catch (error) {
@@ -251,12 +369,12 @@ const useDownload = () => {
     }
   };
 
-  return { state, startDownload };
+  return { state, selectedFile, setSelectedFile, startDownload };
 };
 
 // 메인 컴포넌트
 export default function App() {
-  const { state, startDownload } = useDownload();
+  const { state, selectedFile, setSelectedFile, startDownload } = useDownload();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4 relative overflow-hidden">
@@ -264,7 +382,12 @@ export default function App() {
 
       <div className="relative z-10 text-center mx-auto">
         <Header />
-        <DownloadCard state={state} onDownload={startDownload} />
+        <DownloadCard
+          state={state}
+          selectedFile={selectedFile}
+          onFileChange={setSelectedFile}
+          onDownload={startDownload}
+        />
         <div className="mt-4 flex items-center justify-center gap-2 text-sm">
           <a
             href="https://github.com/Switch1220"
@@ -292,10 +415,11 @@ export default function App() {
 }
 
 // 다운로드 유틸리티 함수
-async function downloadFile(): Promise<void> {
+async function downloadFile(fileName: FileName): Promise<void> {
   await new Promise((resolve) => setTimeout(resolve, 600)); // 600ms 대기
 
-  const response = await fetch(DOWNLOAD_URL, {
+  const downloadUrl = getDownloadUrl(fileName);
+  const response = await fetch(downloadUrl, {
     method: "GET",
     headers: {
       "Cache-Control": "no-cache", // 캐시 무효화
@@ -308,7 +432,7 @@ async function downloadFile(): Promise<void> {
   if (window.navigator && window.navigator.msSaveOrOpenBlob) {
     const blob = await response.blob();
     // @ts-ignore
-    window.navigator.msSaveOrOpenBlob(blob, FILE_NAME);
+    window.navigator.msSaveOrOpenBlob(blob, fileName);
 
     return;
   }
@@ -322,7 +446,7 @@ async function downloadFile(): Promise<void> {
   const a = document.createElement("a");
 
   a.href = url;
-  a.download = FILE_NAME;
+  a.download = fileName;
   document.body.appendChild(a);
   a.click();
   a.remove();
